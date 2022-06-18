@@ -11,6 +11,7 @@
     "import pandas as pd\n",
     "#from  matplotlib import plotly as plt\n",
     "import numpy as np\n",
+    "import streamlit as st\n",
     "import warnings\n",
     "warnings.filterwarnings(\"ignore\")\n",
     "\n",
