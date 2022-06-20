@@ -1,0 +1,13 @@
+Pympler==1.0.1
+PyMySQL==1.0.2
+plotly==5.8.2
+plotly-express==0.4.1
+plotly-geo==1.0.0
+pandas==1.4.2
+matplotlib==3.5.2
+dash==2.5.1
+dash-auth==1.4.1
+dash-core-components==2.0.0
+dash-html-components==2.0.0
+dash-table==5.0.0
+streamlit==1.9.0
