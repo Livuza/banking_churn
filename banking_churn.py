@@ -78,4 +78,4 @@ st.write((confusion_matrix(test_y, predicted_labels)))
 st.write((accuracy_score(test_y, predicted_labels)))
 
 
-st.sidebar.title("Customer Bank Churn App")
+st.subheader("Customer Bank Churn App")
