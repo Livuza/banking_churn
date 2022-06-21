@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
-#import seaborn as sns
+import seaborn as sns
 import plotly.express as px
 import warnings
 warnings.filterwarnings("ignore")
@@ -15,86 +15,64 @@ st.write("Drop columns with no effect on whether customer will churn (RowNumber,
 banking_churn.drop(['RowNumber', 'CustomerId', 'Surname'], axis=1, inplace = True)
 st.write(banking_churn.head())
 st.write(banking_churn.describe())
+st.write("Count per Geography")
+st.write(banking_churn["Geography"].value_counts())
 
 st.write("Effect of Gender on customer churn")
-
 counts = banking_churn.groupby(['Gender', 'Exited']).Exited.count().unstack()
 counts.plot(kind='bar', stacked=True)
 st.pyplot()
 st.write(counts)
 
 st.write("Effect of Geography on customer churn")
-
 counts = banking_churn.groupby(['Geography', 'Exited']).Exited.count().unstack()
 counts.plot(kind='bar', stacked=True)
 st.pyplot()
 st.write(counts)
-# read the train data
-train_data = pd.read_csv('https://raw.githubusercontent.com/Livuza/ADS-April-2021/main/Assignments/Assignment%202/banking_churn.csv')
 
-# check for the null values
-st.write("check for the null values")
-st.write(train_data.isna().sum())
-import category_encoders as ce
-# create an object of the OneHotEncoder
-OHE = ce.OneHotEncoder(cols=['Geography',
-                             'Gender',],use_cat_names=True)
-# encode the categorical variables
-train_data = OHE.fit_transform(train_data)
-#st.write(train_data)
-from sklearn.preprocessing import StandardScaler
-# create an object of the StandardScaler
-scaler = StandardScaler()
-# fit with the Geography
-scaler.fit(np.array(train_data.Geography_Spain).reshape(-1,1))
-# transform the data
-train_data.Geography_Spain = scaler.transform(np.array(train_data.Geography_Spain).reshape(-1,1))
+st.write("Remove the categorical columns Geography and Gender")
+tempdata = banking_churn.drop(['Geography','Gender'], axis=1)
+st.write(tempdata.head(2))
 
-# importing libraries
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import  RandomForestRegressor
+st.write("Create one hot encoded columns for Geography and Gender")
+Geography = pd.get_dummies(banking_churn.Geography).iloc[:,1:]
+Gender = pd.get_dummies(banking_churn.Gender).iloc[:,1:]
+banking_churn = pd.concat([tempdata,Geography,Gender], axis=1)
+st.write(banking_churn.head(2))
+
+train_X = banking_churn.drop(['Exited'], axis=1)
+train_Y = banking_churn['Exited']
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
-
-# separate the independent and target variable
-train_X = train_data.drop(columns=['Gender_Female','Gender_Male'])
-train_Y = train_data['Gender_Male']
-
-# randomly split the data
-train_x, test_x, train_y, test_y = train_test_split(train_X, train_Y,test_size=0.2,random_state=42)
-
-# shape of train and test splits
+train_x, test_x, train_y, test_y = train_test_split(train_X, train_Y, test_size=0.2, random_state=42)
+st.write("shape of train and test splits")
 train_x.shape, test_x.shape, train_y.shape, test_y.shape
+st.subheader("Train and Evaluation of Machine Learning Models")
+st.write("Training the model using Random Forest algorithm:")
+from sklearn.ensemble import RandomForestClassifier as rfc
 
-# create an object of the LinearRegression Model
-#model_LR = LinearRegression()
+rfc_object = rfc(n_estimators=200, random_state=0)
+rfc_object.fit(train_x, train_y)
+predicted_labels = rfc_object.predict(test_x)
 
-# fit the model with the training data
-#model_LR.fit(train_x, train_y)
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+st.write((classification_report(test_y, predicted_labels)))
+st.write((confusion_matrix(test_y, predicted_labels)))
+st.write((accuracy_score(test_y, predicted_labels)))
+from sklearn.svm import SVC as svc
 
-# predict the target on train and test data
-#predict_train = model_LR.predict(train_x)
-#predict_test  = model_LR.predict(test_x)
+st.write("Train the model using support vector machines:")
+svc_object = svc(kernel='rbf', degree=8)
+svc_object.fit(train_x, train_y)
+predicted_labels = svc_object.predict(test_x)
+st.write((classification_report(test_y, predicted_labels)))
+st.write((confusion_matrix(test_y, predicted_labels)))
+st.write((accuracy_score(test_y, predicted_labels)))
 
-# Root Mean Squared Error on train and test date
-#print('RMSE on train data: ', mean_squared_error(train_y, predict_train)**(0.5))
-#print('RMSE on test data: ',  mean_squared_error(test_y, predict_test)**(0.5))
-
-# create an object of the RandomForestRegressor
-#model_RFR = RandomForestRegressor(max_depth=10)
-
-# fit the model with the training data
-#model_RFR.fit(train_x, train_y)
-
-# predict the target on train and test data
-#predict_train = model_RFR.predict(train_x)
-#predict_test = model_RFR.predict(test_x)
-
-# Root Mean Squared Error on train and test data
-#print('RMSE on train data: ', mean_squared_error(train_y, predict_train)**(0.5))
-#print('RMSE on test data: ',  mean_squared_error(test_y, predict_test)**(0.5))
-
-# plot the 7 most important features
-#plt.figure(figsize=(10,7))
-#feat_importances = pd.Series(model_RFR.feature_importances_, index = train_x.columns)
-#feat_importances.nlargest(7).plot(kind='barh');
+st.write("Train the model using logistic regression:")
+from sklearn.linear_model import LogisticRegression
+lr_object = LogisticRegression()
+lr_object.fit(train_x, train_y)
+predicted_labels = lr_object.predict(test_x)
+st.write((classification_report(test_y, predicted_labels)))
+st.write((confusion_matrix(test_y, predicted_labels)))
+st.write((accuracy_score(test_y, predicted_labels)))
