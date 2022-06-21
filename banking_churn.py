@@ -76,3 +76,6 @@ predicted_labels = lr_object.predict(test_x)
 st.write((classification_report(test_y, predicted_labels)))
 st.write((confusion_matrix(test_y, predicted_labels)))
 st.write((accuracy_score(test_y, predicted_labels)))
+
+
+st.sidebar.title("Customer Bank Churn App")
