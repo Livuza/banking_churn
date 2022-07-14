@@ -59,7 +59,7 @@ y = data['Exited']
 #X.head()
 
 #st.subheader("Handling Imbalanced Data with SMOTE - Simplelic Minority of Technics")
-from imblearn.over_sampling import SMOTE
+#from imblearn.over_sampling import SMOTE
 X_res,y_res = SMOTE().fit_resample(X,y)
 #y_res.value_counts()
 
