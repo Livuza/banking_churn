@@ -1,120 +1,199 @@
+# importing required values
+#%matplotlib inline
 import pandas as pd
-import streamlit as st
-from sklearn.preprocessing import StandardScaler
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.decomposition import PCA
-from sklearn import svm
-
-from sklearn.ensemble import RandomForestClassifier as rfc
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.svm import SVC as svc
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report,accuracy_score,confusion_matrix
-
 import numpy as np
+import streamlit as st
+import matplotlib
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+import warnings
+import os
+import zipfile
+import tkinter as tk
+from tkinter.filedialog import askopenfilename
+tk.Tk().withdraw()
+warnings.filterwarnings("ignore")
+banking_churn = pd.read_csv("https://raw.githubusercontent.com/Livuza/ADS-April-2021/main/Assignments/Assignment%202/banking_churn.csv")
+#banking_churn.head()
+#banking_churn.describe()
+#banking_churn.shape
+#banking_churn.shape[0]
+#banking_churn.shape[1]
+#banking_churn.columns
+#st.write("Drop columns with no effect on whether customer will churn (RowNumber, CustomerId,Surname)")
+data = banking_churn.drop(['RowNumber', 'CustomerId', 'Surname'], axis=1, inplace = True)
+#banking_churn.head()
+#banking_churn.describe()
+#banking_churn.columns
+#st.subheader("Display Geography")
+data = banking_churn["Geography"].unique()
+#st.subheader("Count per Geography")
+banking_churn["Geography"].value_counts()
 
-data=pd.read_csv('https://raw.githubusercontent.com/regan-mu/ADS-April-2022/main/Assignments/Assignment%202/banking_churn.csv')
-st.write(data.head())
-st.write(data.describe())
-st.write(data.isna().sum())
+#st.subheader("Effect of Geography on customer churn")
+#st.write(sns.countplot(banking_churn["Exited"]))
+#counts = banking_churn.groupby(['Geography', 'Exited']).Exited.count().unstack()
+#counts.plot(kind='bar', stacked=True)
+#st.pyplot()
+#st.write(counts)
 
-#Removing columns that have no effect on customer churn
-(data.drop(['RowNumber','CustomerId','Surname'], axis=1, inplace=True))
-st.write(data.head())
-st.write(data.describe())
-st.write(data.groupby('Exited').mean())
+#st.write("Remove the categorical columns Geography and Gender")
+#tempdata = banking_churn.drop(['Geography','Gender'], axis=1)
+#st.write(tempdata.head(2))
 
-st.write("Create one hot encoded columns for Geography and Gender")
+#st.write("Create one hot encoded columns for Geography and Gender")
+data = pd.get_dummies(banking_churn, drop_first=True)
+#data.head()
+#Geography = pd.get_dummies(banking_churn.Geography).iloc[:,0:]
+#Gender = pd.get_dummies(banking_churn.Gender).iloc[:,0:]
+#banking_churn = pd.concat([banking_churn,Geography,Gender], axis=1)
+#st.write(banking_churn.head(2))
 
-# convert categorical columns in text to numerical values i.e Gender and Geography
-tempdata=data.drop(['Geography','Gender'], axis=1)
-st.write(tempdata)
-Geography=pd.get_dummies(data.Geography).iloc[:,1:]
-Gender=pd.get_dummies(data.Gender).iloc[:,1:]
+#st.subheader("Not Handling Imbalance")
+#data["Exited"].value_counts()
+#sns.countplot(data["Exited"])
 
-data1=pd.concat([tempdata,Geography,Gender], axis=1)
-st.write(data1.head())
+X = data.drop(['Exited'], axis=1)
+y = data['Exited']
+#X.head()
 
-#separating the features and labels
+#st.subheader("Handling Imbalanced Data with SMOTE - Simplelic Minority of Technics")
+from imblearn.over_sampling import SMOTE
+X_res,y_res = SMOTE().fit_resample(X,y)
+#y_res.value_counts()
 
-#splitting the data
-x_train = data1.drop(['Exited'], axis=1)
-y_train = data1['Exited']
-x_train, x_test, y_train, y_test = train_test_split(x_train, y_train, test_size=0.2, random_state=21)
+#st.subheader("Splitting SMOTE Dataset Into Training and Test Set")
+from sklearn.model_selection import train_test_split
+train_x, test_x, train_y, test_y = train_test_split(X_res, y_res, test_size=0.2, random_state=42)
+#st.write("shape of train and test splits")
+#train_x.shape, test_x.shape, train_y.shape, test_y.shape
 
-st.write(x_train.head())
-st.write(y_train.head())
+#st.subheader("Feature Scaling")
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+train_x = sc.fit_transform(train_x)
+test_x = sc.transform(test_x)
+#train_x
 
-st.write(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
-
-#Training and modelling the train data
-
-classifier=rfc(n_estimators=200, random_state=0)
-classifier.fit(x_train,y_train)
-predicted_labels = classifier.predict(x_test)
-
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
-st.write((classification_report(y_test, predicted_labels)))
-st.write((confusion_matrix(y_test, predicted_labels)))
-st.write((accuracy_score(y_test, predicted_labels)))
-from sklearn.svm import SVC as svc
-
-st.write("Train the model using support vector machines:")
-svc_object = svc(kernel='rbf', degree=8)
-svc_object.fit(x_train, y_train)
-predicted_labels = svc_object.predict(x_test)
-st.write((classification_report(y_test, predicted_labels)))
-st.write((confusion_matrix(y_test, predicted_labels)))
-st.write((accuracy_score(y_test, predicted_labels)))
-
-st.write("Train the model using logistic regression:")
+#st.subheader("Logistic Regression")
 from sklearn.linear_model import LogisticRegression
-lr_object = LogisticRegression()
-lr_object.fit(x_train, y_train)
-predicted_labels = lr_object.predict(x_test)
-st.write((classification_report(y_test, predicted_labels)))
-st.write((confusion_matrix(y_test, predicted_labels)))
-st.write((accuracy_score(y_test, predicted_labels)))
-#Banking churn modeling
+log = LogisticRegression()
+log.fit(train_x, train_y)
+y_pred1 = log.predict(test_x)
+from sklearn.metrics import accuracy_score
+accuracy_score(test_y, y_pred1)
+from sklearn.metrics import precision_score,recall_score,f1_score
+precision_score(test_y, y_pred1)
+recall_score(test_y, y_pred1)
+f1_score(test_y, y_pred1)
 
+#st.subheader("SVC - Support Vector Classifier")
+from sklearn import svm
+svm = svm.SVC()
+svm.fit(train_x, train_y)
+y_pred2 = svm.predict(test_x)
+accuracy_score(test_y, y_pred2)
+precision_score(test_y, y_pred2)
+recall_score(test_y, y_pred2)
+f1_score(test_y, y_pred2)
 
-import pickle
-#pickle_in = open(model)
-       #pickle_in = open('classifier.pkl', 'rb')
-#classifier = pickle.load(pickle_in)
+#st.subheader("KNeighbors Classifier")
+from sklearn.neighbors import KNeighborsClassifier
+knn = KNeighborsClassifier()
+knn.fit(train_x, train_y)
+y_pred3 = knn.predict(test_x)
+accuracy_score(test_y, y_pred3)
+precision_score(test_y, y_pred3)
+recall_score(test_y, y_pred3)
+f1_score(test_y, y_pred3)
 
-@st.cache()
+#st.subheader("Decision Tree Classifier")
+from sklearn.tree import DecisionTreeClassifier
+dt = DecisionTreeClassifier()
+dt.fit(train_x, train_y)
+y_pred4 = dt.predict(test_x)
+accuracy_score(test_y, y_pred4)
+precision_score(test_y, y_pred4)
+recall_score(test_y, y_pred4)
+f1_score(test_y, y_pred4)
 
-# defining the function which will make the prediction using the data which the user inputs
-def prediction(CreditScore, Age, Tenure, Balance,NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, Geography, Gender):
+#st.subheader("Random Forest Classifier")
+from sklearn.ensemble import RandomForestClassifier
+rf = RandomForestClassifier()
+rf.fit(train_x, train_y)
+y_pred5 = rf.predict(test_x)
+accuracy_score(test_y, y_pred5)
+precision_score(test_y, y_pred5)
+recall_score(test_y, y_pred5)
+f1_score(test_y, y_pred5)
+#st.subheader("Gradient Boosting Classifier")
+from sklearn.ensemble import GradientBoostingClassifier
+gb = GradientBoostingClassifier()
+gb.fit(train_x, train_y)
+y_pred6 = gb.predict(test_x)
+accuracy_score(test_y, y_pred6)
+precision_score(test_y, y_pred6)
+recall_score(test_y, y_pred6)
+f1_score(test_y, y_pred6)
 
-    # Pre-processing user input
-    if Gender == "Male":
-        Gender = 0
-    else:
-        Gender = 1
+final_data = pd.DataFrame({"Models": ["LR", "SVC", "KNN", "DT", "RF", "GB"],
+                           "ACC":[accuracy_score(test_y, y_pred1),
+                                  accuracy_score(test_y, y_pred2),
+                                  accuracy_score(test_y, y_pred3),
+                                  accuracy_score(test_y, y_pred4),
+                                  accuracy_score(test_y, y_pred5),
+                                  accuracy_score(test_y, y_pred6)]})
+#final_data
+#import seaborn as sns
+#sns.barplot(final_data["Models"],final_data["ACC"])
+#st.set_option('deprecation.showPyplotGlobalUse', False)
+#pyplot()
 
-    if (Geography == "Germany"):
-        Geography_Germany = 0
-        Geography_Spain = 1
-        Geography_France = 0
-    elif (Geography == "Spain"):
-        Geography_Germany = 1
-        Geography_Spain = 0
-        Geography_France = 0
-    else:
-        Geography_Germany = 0
-        Geography_Spain = 0
-        Geography_France = 1
+final_data = pd.DataFrame({"models": ["LR", "SVC", "KNN", "DT", "RF", "GB"],
+                           "PRE":[precision_score(test_y, y_pred1),
+                                  precision_score(test_y, y_pred2),
+                                  precision_score(test_y, y_pred3),
+                                  precision_score(test_y, y_pred4),
+                                  precision_score(test_y, y_pred5),
+                                  precision_score(test_y, y_pred6)]})
+#final_data
 
-    # Making predictions
-    prediction = model.predict(
-        [[CreditScore, Age, Tenure, Balance,NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, Geography, Gender]])
-    if prediction == 0:
-        pred = 'Not Exited'
-    else:
-        pred = 'Exited'
-    return pred
+final_data = pd.DataFrame({"models": ["LR", "SVC", "KNN", "DT", "RF", "GB"],
+                           "Recall":[recall_score(test_y, y_pred1),
+                                  recall_score(test_y, y_pred2),
+                                  recall_score(test_y, y_pred3),
+                                  recall_score(test_y, y_pred4),
+                                  recall_score(test_y, y_pred5),
+                                  recall_score(test_y, y_pred6)]})
+#final_data
+
+final_data = pd.DataFrame({"models": ["LR", "SVC", "KNN", "DT", "RF", "GB"],
+                           "F1":[f1_score(test_y, y_pred1),
+                                  f1_score(test_y, y_pred2),
+                                  f1_score(test_y, y_pred3),
+                                  f1_score(test_y, y_pred4),
+                                  f1_score(test_y, y_pred5),
+                                  f1_score(test_y, y_pred6)]})
+#final_data
+
+#st.subheader("Save the Best Model - Random Forest Classifier")
+
+X_res = sc.fit_transform(X_res)
+model = rf.fit(X_res, y_res)
+
+#data.columns
+
+#model.predict([[619,42,2,0.0,0,0,0,101348.88,0,0,0]])
+st.title("Banking Churn Prediction")
+CreditScore = st.text_input("Credit Score")
+Age = st.text_input("Age")
+Tenure = st.text_input("Tenure")
+Balance = st.text_input("Balance")
+NumofProducts = st.text_input("Num of Products")
+HasCrCard = st.text_input("Has Cr Card")
+IsActiveMember = st.text_input("Is Active Member")
+EstimatedSalary = st.text_input("Estimated Salary")
+Geography = st.text_input("Geography")
+Gender = st.text_input("Gender")
+st.button("Predict")
