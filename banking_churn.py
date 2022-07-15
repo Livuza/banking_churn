@@ -5,14 +5,14 @@ import numpy as np
 import streamlit as st
 import matplotlib
 import matplotlib.pyplot as plt
-#import seaborn as sns
+import seaborn as sns
 import plotly.express as px
 import warnings
 import os
 import zipfile
-#import tkinter as tk
-#from tkinter.filedialog import askopenfilename
-#tk.Tk().withdraw()
+import tkinter as tk
+from tkinter.filedialog import askopenfilename
+tk.Tk().withdraw()
 warnings.filterwarnings("ignore")
 banking_churn = pd.read_csv("https://raw.githubusercontent.com/Livuza/ADS-April-2021/main/Assignments/Assignment%202/banking_churn.csv")
 #banking_churn.head()
@@ -59,7 +59,7 @@ y = data['Exited']
 #X.head()
 
 #st.subheader("Handling Imbalanced Data with SMOTE - Simplelic Minority of Technics")
-#from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE
 X_res,y_res = SMOTE().fit_resample(X,y)
 #y_res.value_counts()
 
@@ -181,11 +181,56 @@ final_data = pd.DataFrame({"models": ["LR", "SVC", "KNN", "DT", "RF", "GB"],
 
 X_res = sc.fit_transform(X_res)
 model = rf.fit(X_res, y_res)
+# saving the model
 
+import pickle
+import streamlit as st
+pickle_out = open("classifier.pkl", mode = "wb")
+pickle.dump(model, pickle_out)
+pickle_out.close()
+# loading the trained model
+pickle_in = open('classifier.pkl', 'rb')
+classifier = pickle.load(pickle_in)
+
+@st.cache()
+def prediction(CreditScore, Age, Tenure, Balance,NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany,GeographySpain, GenderMale):
 #data.columns
+       if GenderMale == "Male":
+              Gender = 1
+       else:
+              GenderMale = 0
+       if (GeographyGermany == "Germany"):
+              GeographyGermany = 1
+       else:
+              GeographyGermany = 0
+       if (GeographySpain == "Spain"):
+              GeographySpain = 1
+       else:
+              GeographySpain = 0
 
+#Making predictions
+       prediction = model.predict(
+              [[CreditScore, Age, Tenure, Balance, NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany, GeographySpain, GenderMale]])
+       if prediction == 0:
+              st.write('Not Exited')
+       else:
+              st.write('Exited')
 #model.predict([[619,42,2,0.0,0,0,0,101348.88,0,0,0]])
+# this is the main function in which we define our webpage
+def main():
+
+       # front end elements of the web page
+       html_temp = """ 
+    <div style ="background-color:blue;padding:13px"> 
+    <h1 style ="color:black;text-align:center;">Banking Churn Prediction</h1> 
+    </div> 
+    """
+       # display the front end aspect
+       st.write(html_temp, unsafe_allow_html=True)
 st.title("Banking Churn Prediction")
+# display the front end aspect
+
+# following lines create boxes in which user can enter data required to make prediction
 CreditScore = st.text_input("Credit Score")
 Age = st.text_input("Age")
 Tenure = st.text_input("Tenure")
@@ -194,6 +239,17 @@ NumofProducts = st.text_input("Num of Products")
 HasCrCard = st.text_input("Has Cr Card")
 IsActiveMember = st.text_input("Is Active Member")
 EstimatedSalary = st.text_input("Estimated Salary")
-Geography = st.text_input("Geography")
-Gender = st.text_input("Gender")
-st.button("Predict")
+GeographyGermany = st.text_input("Geography Germany")
+GeographySpain = st.text_input("Geography Spain")
+GenderMale = st.text_input("Gender Male")
+#st.button("Predict")
+result = ""
+
+# when 'Predict' is clicked, make the prediction and store it
+if st.button("Predict"):
+       result = prediction(CreditScore, Age, Tenure, Balance, NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany, GeographySpain, GenderMale)
+       st.success(prediction.format(result))
+       print(result)
+
+if __name__ == '__main__':
+       main()
