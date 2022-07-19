@@ -182,7 +182,6 @@ final_data = pd.DataFrame({"models": ["LR", "SVC", "KNN", "DT", "RF", "GB"],
 X_res = sc.fit_transform(X_res)
 model = rf.fit(X_res, y_res)
 # saving the model
-
 import pickle
 import streamlit as st
 pickle_out = open("classifier.pkl", mode = "wb")
@@ -191,6 +190,8 @@ pickle_out.close()
 # loading the trained model
 pickle_in = open('classifier.pkl', 'rb')
 classifier = pickle.load(pickle_in)
+
+model.predict([[619,42,2,0.0,0,0,0,101348.88,0,0,0]])
 
 @st.cache()
 def prediction(CreditScore, Age, Tenure, Balance,NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany,GeographySpain, GenderMale):
@@ -220,6 +221,7 @@ def prediction(CreditScore, Age, Tenure, Balance,NumofProducts, HasCrCard, IsAct
 def main():
 
        # front end elements of the web page
+
        html_temp = """ 
     <div style ="background-color:blue;padding:13px"> 
     <h1 style ="color:black;text-align:center;">Banking Churn Prediction</h1> 
