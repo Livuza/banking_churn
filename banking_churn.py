@@ -187,7 +187,7 @@ import streamlit as st
 pickle_out = open("classifier.pkl", mode = "wb")
 pickle.dump(model, pickle_out)
 pickle_out.close()
-# loading the trained model
+#loading the trained model
 pickle_in = open('classifier.pkl', 'rb')
 classifier = pickle.load(pickle_in)
 
@@ -197,9 +197,10 @@ model.predict([[619,42,2,0.0,0,0,0,101348.88,0,0,0]])
 def prediction(CreditScore, Age, Tenure, Balance,NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany,GeographySpain, GenderMale):
 #data.columns
        if GenderMale == "Male":
-              Gender = 1
+              GenderMale = 1
        else:
               GenderMale = 0
+
        if (GeographyGermany == "Germany"):
               GeographyGermany = 1
        else:
@@ -213,9 +214,9 @@ def prediction(CreditScore, Age, Tenure, Balance,NumofProducts, HasCrCard, IsAct
        prediction = model.predict(
               [[CreditScore, Age, Tenure, Balance, NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany, GeographySpain, GenderMale]])
        if prediction == 0:
-              st.write('Not Exited')
+              st.markdown('Not Exited')
        else:
-              st.write('Exited')
+              st.markdown('Exited')
 #model.predict([[619,42,2,0.0,0,0,0,101348.88,0,0,0]])
 # this is the main function in which we define our webpage
 def main():
@@ -252,6 +253,5 @@ if st.button("Predict"):
        result = prediction(CreditScore, Age, Tenure, Balance, NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany, GeographySpain, GenderMale)
        st.success(prediction.format(result))
        print(result)
-
 if __name__ == '__main__':
        main()
