@@ -10,9 +10,9 @@ import plotly.express as px
 import warnings
 import os
 import zipfile
-import tkinter as tk
-from tkinter.filedialog import askopenfilename
-tk.Tk().withdraw()
+#import tkinter as tk
+#from tkinter.filedialog import askopenfilename
+#tk.Tk().withdraw()
 warnings.filterwarnings("ignore")
 banking_churn = pd.read_csv("https://raw.githubusercontent.com/Livuza/ADS-April-2021/main/Assignments/Assignment%202/banking_churn.csv")
 #banking_churn.head()
