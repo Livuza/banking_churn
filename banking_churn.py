@@ -194,7 +194,8 @@ classifier = pickle.load(pickle_in)
 model.predict([[619,42,2,0.0,0,0,0,101348.88,0,0,0]])
 
 @st.cache()
-def prediction(CreditScore, Age, Tenure, Balance,NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany,GeographySpain, GenderMale):
+def prediction(CreditScore, Age, Tenure, Balance,NumofProducts, 
+HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany,GeographySpain, GenderMale):
 #data.columns
        if GenderMale == "Male":
               GenderMale = 1
@@ -210,30 +211,17 @@ def prediction(CreditScore, Age, Tenure, Balance,NumofProducts, HasCrCard, IsAct
        else:
               GeographySpain = 0
 
-#Making predictions
-       prediction = model.predict(
-              [[CreditScore, Age, Tenure, Balance, NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany, GeographySpain, GenderMale]])
-       if prediction == 0:
-              st.markdown('Not Exited')
-       else:
-              st.markdown('Exited')
 #model.predict([[619,42,2,0.0,0,0,0,101348.88,0,0,0]])
 # this is the main function in which we define our webpage
 def main():
 
        # front end elements of the web page
-
-       html_temp = """ 
-    <div style ="background-color:blue;padding:13px"> 
-    <h1 style ="color:black;text-align:center;">Banking Churn Prediction</h1> 
-    </div> 
-    """
        # display the front end aspect
-       st.write(html_temp, unsafe_allow_html=True)
-st.title("Banking Churn Prediction")
 # display the front end aspect
 
 # following lines create boxes in which user can enter data required to make prediction
+       st.subheader("END")
+st.write("Banking Churn Prediction")
 CreditScore = st.text_input("Credit Score")
 Age = st.text_input("Age")
 Tenure = st.text_input("Tenure")
@@ -245,13 +233,22 @@ EstimatedSalary = st.text_input("Estimated Salary")
 GeographyGermany = st.text_input("Geography Germany")
 GeographySpain = st.text_input("Geography Spain")
 GenderMale = st.text_input("Gender Male")
-#st.button("Predict")
+predict = st.button("Predict")
 result = ""
 
 # when 'Predict' is clicked, make the prediction and store it
-if st.button("Predict"):
-       result = prediction(CreditScore, Age, Tenure, Balance, NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany, GeographySpain, GenderMale)
-       st.success(prediction.format(result))
+if predict:
+       result = prediction(CreditScore, Age, Tenure, Balance, NumofProducts, 
+       HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany, GeographySpain, GenderMale)
+       # st.success(prediction.format(result))
        print(result)
+#Making predictions
+       prediction = model.predict([[CreditScore, Age, Tenure, Balance, NumofProducts, HasCrCard, IsActiveMember, EstimatedSalary, GeographyGermany, GeographySpain, GenderMale]])
+if prediction == 0:
+       st.markdown('Not Exited')
+else:
+       st.markdown('Exited')
 if __name__ == '__main__':
        main()
+st.sidebar.subheader("models performance")
+st.sidebar.write(final_data)
